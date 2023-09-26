@@ -33,11 +33,12 @@ def cropGameScreenshot(image, BoxCoord):
     image = image.crop(box = (BoxCoord[2],BoxCoord[0],BoxCoord[3],BoxCoord[1]))
     return image
 
-def create_testdata(inputpath):
+def create_testdata(img):
     # This function is necessary for feeding the TensorFlow model with a valid input
     x = []
-    img = cv2.imread(inputpath,0)
-    x.append(img)
+    img_array = np.array(img)
+    img_array = img_array.astype(np.uint8)
+    x.append(img_array)
     x = np.array(x)
     x = np.expand_dims(x, axis=3)
     test_image = x.astype('float32') / 255
@@ -49,7 +50,6 @@ def processImage(img,Coord, Mode):
     boxed_array = np.array(boxed) 
     gray_pic = cv2.cvtColor(boxed_array, cv2.COLOR_BGR2GRAY) #converting the image into grayscale
     r, threshold = cv2.threshold(gray_pic, 125, 255, cv2.THRESH_OTSU) #converting the image into grayscale using the histogram method
-    #color_converted = cv2.cvtColor(threshold, cv2.COLOR_BGR2RGB)
     kernel = np.ones((2, 2), np.uint8)
     dilated = cv2.dilate(threshold,kernel,iterations=1)
     pil_image = Image.fromarray(dilated)
@@ -98,19 +98,17 @@ def getGameInfo(img, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates)
         SumLeftDigit = processImage(img, SumCoordinatesLeft[i,:], 0)
         SumRightDigit = processImage(img, SumCoordinatesRight[i,:], 0)
         
-        SumLeftDigit.save(savepath)
-        test_image = create_testdata(savepath)
+        test_image = create_testdata(SumLeftDigit)
         SumLeftDigit = np.argmax(model.predict(test_image, verbose = 0))
         
-        SumRightDigit.save(savepath)
-        test_image = create_testdata(savepath)
+        test_image = create_testdata(SumRightDigit)
         SumRightDigit = np.argmax(model.predict(test_image, verbose = 0))
         
         InfoArray[i,0] = 10*SumLeftDigit + SumRightDigit
         
         NBombsDigit = processImage(img, NBombsCoordinates[i,:],0)
-        NBombsDigit.save(savepath)
-        test_image = create_testdata(savepath)
+
+        test_image = create_testdata(NBombsDigit)
         InfoArray[i,1] = np.argmax(model.predict(test_image, verbose = 0))
     
     return InfoArray
@@ -124,8 +122,7 @@ def getSquaresInfo(Grid, SqCoordinates):
         for j in range(5):
             Sqdigit = processImage(Grid, SqCoordinates[5*i+j,:],1)
             
-            Sqdigit.save(savepath)
-            test_image = create_testdata(savepath)
+            test_image = create_testdata(Sqdigit)
             Squares[i,j] = np.argmax(model.predict(test_image, verbose=0))
             if Squares[i,j] == 11: # 11 = Unflipped Card
                 Squares[i,j] = 0
@@ -134,8 +131,7 @@ def getSquaresInfo(Grid, SqCoordinates):
 
 def getCurrentLvl(img, LvlCoordinates):
     LvlDigit = processImage(img,LvlCoordinates, 2)
-    LvlDigit.save(savepath)
-    test_image = create_testdata(savepath)
+    test_image = create_testdata(LvlDigit)
     lvl = np.argmax(model.predict(test_image, verbose = 0))
     return lvl
 
@@ -143,8 +139,7 @@ def getCoins(img, CoinsCoord):
     digits = np.zeros(5,dtype=int)
     for i in range(5):
         processedDigit = processImage(img,CoinsCoord[i,:], 0)
-        processedDigit.save(savepath)
-        test_image = create_testdata(savepath)
+        test_image = create_testdata(processedDigit)
         digits[i] = np.argmax(model.predict(test_image, verbose = 0))
                 
     text = ''
@@ -392,36 +387,36 @@ def isVoltorbFlipOpen(img, template):
     sorted_locations = find_locations_above_threshold(img, template)
     return bool(len(sorted_locations))
         
-def LoadData():
-    # These coordinates represent the four corners of the bottom window.
-    # Let it untouched
-    file = open('BoxCoord.p', 'rb')
+def LoadData(cur_dir):
+
+    file = open(cur_dir + '\\Data\\BoxCoord.p', 'rb')
     BoxCoord = load(file)
     file.close()
     
-    file = open('SqCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\SqCoordinates.p', 'rb')
     SqCoordinates = load(file)
     file.close()
     
-    file = open('SumCoordinatesLeft.p', 'rb')
+    file = open(cur_dir + '\\Data\\SumCoordinatesLeft.p', 'rb')
     SumCoordinatesLeft = load(file)
     file.close()
     
-    file = open('SumCoordinatesRight.p', 'rb')
+    file = open(cur_dir + '\\Data\\SumCoordinatesRight.p', 'rb')
     SumCoordinatesRight = load(file)
     file.close()
     
-    file = open('NBombsCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\NBombsCoordinates.p', 'rb')
     NBombsCoordinates = load(file)
     file.close()
     
-    file = open('CoinsCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\CoinsCoordinates.p', 'rb')
     CoinsCoordinates = load(file)
     file.close()
     
-    file = open('LvlCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\LvlCoordinates.p', 'rb')
     LvlCoordinates = load(file)
     file.close()
+    
     return BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates 
 
 if __name__ == "__main__":
@@ -430,16 +425,15 @@ if __name__ == "__main__":
     cur_dir = os.getcwd()
     savepath = cur_dir + '\\Digit.png'
     
-    model=load_model('DigitsModel.h5')
-    savedModelWeights = model.load_weights('DigitsModelWeights.h5')
+    model=load_model(cur_dir + '\\Models\\DigitsModel.h5')
+    savedModelWeights = model.load_weights(cur_dir + '\\Models\\DigitsModelWeights.h5')
     
     model.compile(optimizer='rmsprop',
     loss='categorical_crossentropy',
     metrics=['accuracy'])
     
     ## Variable Declarations
-    NumberofGames = 3 # How many iterations do you want to run
-    TargetCoins = 3000
+    TargetCoins = 700
     
     ## Getting a screenshot from the MelonDS screen
     ahk = AHK()
@@ -451,7 +445,7 @@ if __name__ == "__main__":
     win.height = 710
     
     # Import the data
-    BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates = LoadData()
+    BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates = LoadData(cur_dir)
     
     img = getGameScreenshot(win)
     Grid = cropGameScreenshot(img, BoxCoord)
@@ -466,7 +460,6 @@ if __name__ == "__main__":
         it = 0
         stats = []
         while coins < TargetCoins:
-        # for it in range(NumberofGames): # Loop of runs of the algorithm
         
             # Get the initial information of the grid 
             img = getGameScreenshot(win) # Get the screenshot
@@ -545,15 +538,22 @@ if __name__ == "__main__":
                     ## Click on a likely square
                     ChosenSquare = np.argmax(DecisionMatrix)
                     clickSquare(win, BoxCoord, ChosenSquare, SqCoordinates)
+            
+            coins = getCoins(img, CoinsCoordinates) # Update the number of coins
         
         ## Plotting the results
+        coins = getCoins(img, CoinsCoordinates) # Update the number of coins
+        lvl = getCurrentLvl(img, LvlCoordinates) # Read the current lvl of the game
+        stats.append([it, lvl, coins])
+        
         stats = np.array(stats, dtype = int)
+
         plt.figure(0)
-        plt.plot(range(NumberofGames),stats[:,1])
+        plt.plot(range(len(stats)),stats[:,1])
         plt.xlabel('Iteration')
         plt.ylabel('Level')
         plt.figure(1)
-        plt.plot(range(NumberofGames),stats[:,2])
+        plt.plot(range(len(stats)),stats[:,2])
         plt.xlabel('Iteration')
         plt.ylabel('Number of Coins')
         

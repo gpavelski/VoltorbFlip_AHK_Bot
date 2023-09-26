@@ -66,7 +66,8 @@ def getGameScreenshot(win):
 
 if __name__ == "__main__":
     # Load the image and template (replace these paths with your own images)
-    folder_path = os.getcwd() + "\\Patterns\\"
+    cur_dir = os.getcwd()
+    folder_path = cur_dir + '\\Patterns\\'
     # image_path = folder_path + "img.png"
     template_path = folder_path + "pattern.png"
     
@@ -74,11 +75,6 @@ if __name__ == "__main__":
     ahk = AHK()
     
     win = ahk.find_window(title=b'melonDS 0.9.5') # Find the opened window
-    
-    if isinstance(win, type(None)):
-        os.startfile(b'D:\\Emulators\\melonDS\\melonDS.exe')
-        time.sleep(0.6)
-        win = ahk.find_window(title=b'melonDS 0.9.5') # Find the opened window
     
     win.set_position((0, 0))
     win.width = 581
@@ -202,31 +198,33 @@ if __name__ == "__main__":
     
     LvlCoordinates = np.array([Left, Top, Left + 13, Top + 20], dtype = int)
     
+    data_dir = cur_dir + '\\Data\\'
+    
     ## Saving values to files
-    file = open('BoxCoord.p', 'wb')
+    file = open(data_dir + 'BoxCoord.p', 'wb')
     pickle.dump(BoxCoord, file)
     file.close()
     
-    file = open('SqCoordinates.p', 'wb')
+    file = open(data_dir + 'SqCoordinates.p', 'wb')
     pickle.dump(SqCoordinates, file)
     file.close()
     
-    file = open('SumCoordinatesLeft.p', 'wb')
+    file = open(data_dir + 'SumCoordinatesLeft.p', 'wb')
     pickle.dump(SumCoordinatesLeftDigit, file)
     file.close()
     
-    file = open('SumCoordinatesRight.p', 'wb')
+    file = open(data_dir + 'SumCoordinatesRight.p', 'wb')
     pickle.dump(SumCoordinatesRightDigit, file)
     file.close()
     
-    file = open('NBombsCoordinates.p', 'wb')
+    file = open(data_dir + 'NBombsCoordinates.p', 'wb')
     pickle.dump(NBombsCoordinates, file)
     file.close()
     
-    file = open('CoinsCoordinates.p', 'wb')
+    file = open(data_dir + 'CoinsCoordinates.p', 'wb')
     pickle.dump(CoinsCoordinates, file)
     file.close()
     
-    file = open('LvlCoordinates.p', 'wb')
+    file = open(data_dir + 'LvlCoordinates.p', 'wb')
     pickle.dump(LvlCoordinates, file)
     file.close()

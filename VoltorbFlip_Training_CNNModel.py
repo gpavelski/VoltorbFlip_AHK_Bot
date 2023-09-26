@@ -29,9 +29,10 @@ model.add(layers.Dense(12, activation='softmax'))
 
 model.summary()
 
+cur_dir = os.getcwd()
 ## Extracting the data from the dataset
-trainpath = 'C:\\Users\\Guilherme\\Documents\\Python Scripts\\VoltorbFlip\\Digits\\Digits_Dataset_Training\\'
-testpath = 'C:\\Users\\Guilherme\\Documents\\Python Scripts\\VoltorbFlip\\Digits\\Digits_Dataset_Testing\\'
+trainpath = cur_dir + '\\Digits\\Digits_Dataset_Training\\'
+testpath = cur_dir + '\\Digits\\Digits_Dataset_Testing\\'
 
 def create_data(inputpath):
     x = []
@@ -71,5 +72,5 @@ model.fit(train_images, train_labels, epochs=10, batch_size=64)
 test_loss, test_acc = model.evaluate(test_images, test_labels)
 
 ## Saving Model and Weights
-model.save('DigitsModel.h5')
-model.save_weights('DigitsModelWeights.h5')
+model.save(cur_dir + '\\Models\\DigitsModel.h5')
+model.save_weights(cur_dir + '\\Models\\DigitsModelWeights.h5')

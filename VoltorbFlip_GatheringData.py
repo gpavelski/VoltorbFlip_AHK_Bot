@@ -15,34 +15,34 @@ import os
 import numpy as np
 import cv2
 
-def LoadData():
+def LoadData(cur_dir):
     # These coordinates represent the four corners of the bottom window.
     # Let it untouched
-    file = open('BoxCoord.p', 'rb')
+    file = open(cur_dir + '\\Data\\BoxCoord.p', 'rb')
     BoxCoord = load(file)
     file.close()
     
-    file = open('SqCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\SqCoordinates.p', 'rb')
     SqCoordinates = load(file)
     file.close()
     
-    file = open('SumCoordinatesLeft.p', 'rb')
+    file = open(cur_dir + '\\Data\\SumCoordinatesLeft.p', 'rb')
     SumCoordinatesLeft = load(file)
     file.close()
     
-    file = open('SumCoordinatesRight.p', 'rb')
+    file = open(cur_dir + '\\Data\\SumCoordinatesRight.p', 'rb')
     SumCoordinatesRight = load(file)
     file.close()
     
-    file = open('NBombsCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\NBombsCoordinates.p', 'rb')
     NBombsCoordinates = load(file)
     file.close()
     
-    file = open('CoinsCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\CoinsCoordinates.p', 'rb')
     CoinsCoordinates = load(file)
     file.close()
     
-    file = open('LvlCoordinates.p', 'rb')
+    file = open(cur_dir + '\\Data\\LvlCoordinates.p', 'rb')
     LvlCoordinates = load(file)
     file.close()
     return BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates
@@ -56,27 +56,6 @@ def getGameScreenshot(win):
 def cropGameScreenshot(image, BoxCoord):
     image = image.crop(box = (BoxCoord[2],BoxCoord[0],BoxCoord[3],BoxCoord[1]))
     return image
-
-## Getting a screenshot from the MelonDS screen
-ahk = AHK()
-
-win = ahk.find_window(title=b'melonDS 0.9.5')
-
-if isinstance(win, type(None)):
-    os.startfile(b'D:\\Emulators\\melonDS\\melonDS.exe')
-    time.sleep(0.6)
-    win = ahk.find_window(title=b'melonDS 0.9.5')
-
-win.set_position((0, 0))
-win.width = 581
-win.height = 710
-
-# Import the data
-BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates = LoadData()
-
-# Get a screenshot from the game window
-gameScreen = getGameScreenshot(win)
-squares_image = cropGameScreenshot(gameScreen, BoxCoord)
 
 def processImage(img,Coord, Mode):
     # Do some image processing in the input picture
@@ -137,8 +116,23 @@ def update_control_number(filename):
 
 if __name__ == "__main__":
     
-    control_number = update_control_number('control_number.txt')
-    digits_folder = os.getcwd() + "\\Digits\\"
+    cur_dir = os.getcwd()
+    ahk = AHK()
+    win = ahk.find_window(title=b'melonDS 0.9.5')
+
+    win.set_position((0, 0))
+    win.width = 581
+    win.height = 710
+
+    # Import the data
+    BoxCoord, SqCoordinates, SumCoordinatesLeft, SumCoordinatesRight, NBombsCoordinates, CoinsCoordinates, LvlCoordinates = LoadData(cur_dir)
+
+    # Get a screenshot from the game window
+    gameScreen = getGameScreenshot(win)
+    squares_image = cropGameScreenshot(gameScreen, BoxCoord)
+    
+    control_number = update_control_number('Data\\control_number.txt')
+    digits_folder = cur_dir + "\\Digits\\"
     # Square Digits
     for i in range(5):
         for j in range(5):
